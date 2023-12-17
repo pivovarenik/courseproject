@@ -1,4 +1,3 @@
-
 #include "header1.h"
 
 int main()
@@ -47,20 +46,19 @@ int main()
 					case 1:new_client.choosecar();
 						clear();
 						break;
-					case 2:
+					case 2:new_client.cout_reservations();
+						clear();
 						break;
 					case 3:new_client.changeAccountinfo();
 						clear();
 						break;
-					case 4:
+					case 4:new_client.notifications();
+						clear();
 						break;
-					case 5:
+					case 5:new_client.remove_reservation();
+						clear();
 						break;
 					case 6:
-						break;
-					case 7:
-						break;
-					case 8:
 						break;
 					}
 				}
@@ -84,7 +82,8 @@ int main()
 					case 3:new_admin.changeAccountinfo();
 						clear();
 						break;
-					case 4:
+					case 4:new_admin.cout_reservations();
+						clear();
 						break;
 					case 5:new_admin.addAdmin();
 						break;

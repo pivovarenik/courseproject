@@ -1,5 +1,5 @@
 ﻿  funct.cpp
 C:\Users\USER\Desktop\baby_work\car_rental_system\car_rental_system\header1.h(42,20): warning C4305: '=': truncation from 'double' to 'float'
 C:\Users\USER\Desktop\baby_work\car_rental_system\car_rental_system\header1.h(45,27): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\USER\Desktop\baby_work\car_rental_system\car_rental_system\funct.cpp(1348): warning C4715: 'Date::input': not all control paths return a value
+C:\Users\USER\Desktop\baby_work\car_rental_system\car_rental_system\funct.cpp(1367): warning C4715: 'Date::input': not all control paths return a value
   car_rental_system.vcxproj -> C:\Users\USER\Desktop\baby_work\car_rental_system\car_rental_system\x64\Debug\car_rental_system.exe

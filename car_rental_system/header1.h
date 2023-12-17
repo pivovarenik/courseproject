@@ -123,13 +123,13 @@ public:
         
     }
     void setAccountInfo(string login, string password,string name,string surname);
+    string encryptPassword(const string& password);
     string getname();
     string getsurname();
     string getpassword();
     void register_();
     int login_();
     string getlogin();
-    string encryptPassword(const string& password);
     void setdata(User a);
     void changeAccountinfo();
     virtual ~User() {};
@@ -147,7 +147,10 @@ public:
 
     }
     void choosecar();
-    
+    void cout_reservations() {};
+    void notifications() {};
+    void remove_reservation(){};
+
 };
 struct Date {
     int day;
@@ -207,9 +210,6 @@ public:
         this->acquisition_date = ac_date;
         this->return_date = return_date;
     }
-    /*bool operator==(Reservation& other) {
-        return (this->vehicle.getname() == other.vehicle.getname() && this->acquisition_date < other.acquisition_date);
-    }*/
 };
         
 class Admin : public User {
@@ -247,6 +247,7 @@ public:
     void addCar();
     void addAdmin() {};
     void coutCars();
+    void cout_reservations(){};
     ~Admin() {
         ofstream fout;
         fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\cars.txt", ios::trunc);

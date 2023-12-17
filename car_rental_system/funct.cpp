@@ -114,7 +114,7 @@ extern int vsl::UserMenu(MOUSE_EVENT_RECORD ir) {
             gotoxy(125, 16);
             cout << "--------------------------------------------------" << endl;
             gotoxy(125, 17);
-            cout << "|" << setw(13) << " " << left << "Показать историю заказов" << right << setw(12) << "|" << endl;
+            cout << "|" << setw(16) << " " << left << "Снять бронь" << right << setw(22) << "|" << endl;
             gotoxy(125, 18);
             cout << "--------------------------------------------------" << endl;
             SetConsoleTextAttribute(handle, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED);
@@ -322,7 +322,7 @@ extern void vsl::coutUserFunct() {
     gotoxy(125, 16);
     cout << "--------------------------------------------------" << endl;
     gotoxy(125, 17);
-    cout << "|" << setw(13) << " " << left << "Показать историю заказов" << right << setw(12) << "|" << endl;
+    cout << "|" << setw(16) << " " << left << "Снять бронь" << right << setw(22) << "|" << endl;
     gotoxy(125, 18);
     cout << "--------------------------------------------------" << endl;
     gotoxy(125, 21);
@@ -1247,7 +1247,7 @@ void Client::choosecar() {
                             cout << "Забронированные даты:" << endl;
                         }
                         gotoxy(93, y++);
-                        cout << all_reservations[j].returnAcquisitiondate() << " - " << all_reservations[j].returnReturnDate() < endl;
+                        cout << all_reservations[j].returnAcquisitiondate() << " - " << all_reservations[j].returnReturnDate() << endl;
                     }
                 }
                 while (result == 1) {
@@ -1294,7 +1294,7 @@ void Client::choosecar() {
                 if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
                     new_reservation.setdata(this->getlogin(),cars[i],new_date1,new_date2);
                     for (int j = 0; j < all_reservations.size(); j++) {
-                        if () {
+                        if (1) {
                             cout << "Этот автомобиль уже занят на выбранное вами время, пожалуйста выберите другое время" << endl;
 
                         }
