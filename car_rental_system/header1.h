@@ -162,6 +162,22 @@ struct Date {
     }
     friend istream& operator>>(istream& in, Date input);
     friend ostream& operator<<(ostream& out, Date output);
+    bool operator<(Date& other) {
+        if (year < other.year)
+            return true;
+        if (year > other.year)
+            return false;
+        if (month < other.month)
+            return true;
+        if (month > other.month)
+            return false;
+        return day < other.day;
+    }
+    int operator-(const Date& other) const {
+        int days1 = day + 30 * (month - 1);
+        int days2 = other.day + 30 * (other.month - 1);
+        return days1 - days2 + 365 * (year - other.year);
+    }
 };
 class Reservation : public Printable{
 protected:
@@ -170,15 +186,30 @@ protected:
     Date acquisition_date;
     Date return_date;
 public:
+    string getcarname() {
+        return vehicle.getname();
+    }
     string getreceiver_login() {
         return receiver_login;
     }
     Date returnAcquisitiondate() {
         return acquisition_date;
     }
+    Date returnReturnDate() {
+        return return_date;
+    }
     void loadFromFile(std::ifstream& in);
-    void saveToFile(std::ofstream& out) const override ;
+    void saveToFile(std::ofstream& out) const override;
     void button(int x, int y) const override {};
+    void setdata(string login, Car vehicle, Date ac_date, Date return_date) {
+        this->receiver_login = login;
+        this->vehicle = vehicle;
+        this->acquisition_date = ac_date;
+        this->return_date = return_date;
+    }
+    /*bool operator==(Reservation& other) {
+        return (this->vehicle.getname() == other.vehicle.getname() && this->acquisition_date < other.acquisition_date);
+    }*/
 };
         
 class Admin : public User {

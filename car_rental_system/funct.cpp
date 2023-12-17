@@ -1220,14 +1220,14 @@ void Car::button(int x,int y) const {
     cout << "-------------------------------------------------------------";
 }
 void Client::choosecar() {
-    Reservation new_reserve;
     int result=1;
     while (1)
     {
         clear();
         All_cars_user(this->cars);
         int i;
-        Date new_date;
+        Reservation new_reservation;
+        Date new_date1,new_date2;
         i = escmenu(UserCars);
         Sleep(100);
         if (i == 123) break;
@@ -1239,17 +1239,67 @@ void Client::choosecar() {
             if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
                 gotoxy(60, 22);
                 cout << "Введите дату получения транспорта" << endl;
+                gotoxy(93, 22);
+                int y = 23;
+                for (int j{}; j < all_reservations.size(); j++) {
+                    if (cars[i].getname() == all_reservations[j].getcarname()) {
+                        if (result == 1) {
+                            cout << "Забронированные даты:" << endl;
+                        }
+                        gotoxy(93, y++);
+                        cout << all_reservations[j].returnAcquisitiondate() << " - " << all_reservations[j].returnReturnDate() < endl;
+                    }
+                }
                 while (result == 1) {
                     gotoxy(60, 23);
                     cout << "Введите дату XX.XX.XXXX                                                                 ";
                     gotoxy(73, 23);
-                    result = new_date.input();
+                    result = new_date1.input();
                     if (result == 1) {
                         gotoxy(60, 22);
                         cout << "Вы ввели неверную дату, попробуйте еще раз" << endl;
+                        continue;
                     }
                 }
                 result = 1;
+                gotoxy(60, 24);
+                cout << "Введите данные возврата транспорта" << endl;
+                while (result == 1) {
+                    gotoxy(60, 25);
+                    cout << "Введите дату XX.XX.XXXX                                                                 ";
+                    gotoxy(73, 25);
+                    result = new_date2.input();
+                    if (result == 1) {
+                        gotoxy(60, 24);
+                        cout << "Вы ввели неверную дату, попробуйте еще раз" << endl;
+                        continue;
+                    }
+                    if (new_date2 < new_date1) {
+                        gotoxy(60, 24);
+                        cout << "Вы умеете возвращаться назад во времени? Попробуйте еще раз" << endl;
+                        result = 1;
+                        continue;
+                    }
+                    if (new_date2 - new_date1 > 10) {
+                        gotoxy(60, 24);
+                        cout << "Арендовать машину можно не более чем на 10 дней" << endl;
+                        result = 1;
+                        continue;
+                    }
+                }
+                gotoxy(60, 26);
+                cout << "Услуга будет стоить " << User::cars[i].getcost() * (new_date2 - new_date1) << " $";
+                gotoxy(60, 27);
+                system("echo Продолжить? Enter - да, любая клавиша - отказаться && pause > nul");
+                if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
+                    new_reservation.setdata(this->getlogin(),cars[i],new_date1,new_date2);
+                    for (int j = 0; j < all_reservations.size(); j++) {
+                        if () {
+                            cout << "Этот автомобиль уже занят на выбранное вами время, пожалуйста выберите другое время" << endl;
+
+                        }
+                    }
+                }
             }
         }
     }
@@ -1271,7 +1321,7 @@ extern void vsl::All_cars_user(vector<Car> vehicles) {
     y += 6;
     gotoxy(0, y);
     cout << "*********************************************************************************************************************************************************************************************";
-}
+};
 void Reservation::saveToFile(std::ofstream& out) const {
     out << this->receiver_login << endl;
     vehicle.saveToFile(out);
