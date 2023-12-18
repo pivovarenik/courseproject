@@ -163,9 +163,9 @@ struct Date {
         }
         else return false;
     }
-    friend istream& operator>>(istream& in, Date input);
+    friend istream& operator>>(istream& in, Date& input);
     friend ostream& operator<<(ostream& out, Date output);
-    bool operator<(Date& other) {
+    bool operator<(Date other) {
         if (year < other.year)
             return true;
         if (year > other.year)
@@ -175,6 +175,17 @@ struct Date {
         if (month > other.month)
             return false;
         return day < other.day;
+    }
+    bool operator>(Date other) {
+        if (year > other.year)
+            return true;
+        if (year < other.year)
+            return false;
+        if (month > other.month)
+            return true;
+        if (month < other.month)
+            return false;
+        return day > other.day;
     }
     int operator-(const Date& other) const {
         int days1 = day + 30 * (month - 1);

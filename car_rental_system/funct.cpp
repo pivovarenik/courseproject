@@ -1239,14 +1239,16 @@ void Client::choosecar() {
             if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
                 gotoxy(60, 22);
                 cout << "Введите дату получения транспорта" << endl;
-                gotoxy(93, 22);
+                gotoxy(130, 22);
                 int y = 23;
+                result = 1;
                 for (int j{}; j < all_reservations.size(); j++) {
                     if (cars[i].getname() == all_reservations[j].getcarname()) {
-                        if (result == 1) {
+                        if (y==23) {
                             cout << "Забронированные даты:" << endl;
+                            y--;
                         }
-                        gotoxy(93, y++);
+                        gotoxy(130, y+=2);
                         cout << all_reservations[j].returnAcquisitiondate() << " - " << all_reservations[j].returnReturnDate() << endl;
                     }
                 }
@@ -1293,11 +1295,29 @@ void Client::choosecar() {
                 system("echo Продолжить? Enter - да, любая клавиша - отказаться && pause > nul");
                 if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
                     new_reservation.setdata(this->getlogin(),cars[i],new_date1,new_date2);
+                    bool permission = true;
                     for (int j = 0; j < all_reservations.size(); j++) {
-                        if (1) {
-                            cout << "Этот автомобиль уже занят на выбранное вами время, пожалуйста выберите другое время" << endl;
-
+                        if (cars[i].getname() == all_reservations[j].getcarname()) {
+                            if (new_date1 > all_reservations[j].returnReturnDate() || new_date2 < all_reservations[j].returnAcquisitiondate()) {
+                                permission = true;
+                            }
+                            else permission = false;
                         }
+                    }
+                    if (permission == true) {
+                        all_reservations.push_back(new_reservation);
+                        gotoxy(60, 28);
+                        cout << "Успешное бронирование!";
+                        gotoxy(60, 29);
+                        system("pause");
+
+                    }
+                    else
+                    {
+                        gotoxy(60, 28);
+                        cout << "Такая дата уже занята, попробуйте другое время" << endl;
+                        gotoxy(60, 29);
+                        system("pause");
                     }
                 }
             }
@@ -1365,24 +1385,21 @@ int Date::input() {
     }
     else return 1;
 }
-istream& operator>>(istream& in, Date input) {
+istream& operator>>(istream& in, Date& input) {
     string inputDate;
     getline(in, inputDate);
     istringstream dateStream(inputDate);
     char delimiter1, delimiter2;
     dateStream >> input.day >> delimiter1 >> input.month >> delimiter2 >> input.year;
-    in.clear();
-    in.ignore();
     return in;
 }
 void Reservation::loadFromFile(std::ifstream& in) {
-    in.clear();
     std::getline(in, receiver_login);
     vehicle.loadFromFile(in);
     in >> acquisition_date;
     in >> return_date;
 }
 ostream& operator<<(ostream& out, Date output) {
-    out << output.day << "." << output.month << "." << output.year << endl;
+    out << output.day << "." << output.month << "." << output.year;
     return out;
 }
