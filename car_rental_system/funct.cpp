@@ -56,6 +56,7 @@ extern void vsl::clear() {
     );
     SetConsoleCursorPosition(console, topLeft);
 }
+vector<shared_ptr<Reservation>> Client::my_reservations;
 extern int vsl::UserMenu(MOUSE_EVENT_RECORD ir) {
     int state = 0;
     if (ir.dwEventFlags == MOUSE_MOVED) {
@@ -114,7 +115,7 @@ extern int vsl::UserMenu(MOUSE_EVENT_RECORD ir) {
             gotoxy(125, 16);
             cout << "--------------------------------------------------" << endl;
             gotoxy(125, 17);
-            cout << "|" << setw(16) << " " << left << "Снять бронь" << right << setw(22) << "|" << endl;
+            cout << "|" << setw(16) << " " << left << "Изменить бронь" << right << setw(19) << "|" << endl;
             gotoxy(125, 18);
             cout << "--------------------------------------------------" << endl;
             SetConsoleTextAttribute(handle, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED);
@@ -322,7 +323,7 @@ extern void vsl::coutUserFunct() {
     gotoxy(125, 16);
     cout << "--------------------------------------------------" << endl;
     gotoxy(125, 17);
-    cout << "|" << setw(16) << " " << left << "Снять бронь" << right << setw(22) << "|" << endl;
+    cout << "|" << setw(16) << " " << left << "Изменить бронь" << right << setw(19) << "|" << endl;
     gotoxy(125, 18);
     cout << "--------------------------------------------------" << endl;
     gotoxy(125, 21);
@@ -774,21 +775,21 @@ ostream& operator<<(ostream& out, Car car) {
     vsl::gotoxy(0, 5);
     out << "*********************************************************************************************************************************************************************************************";
     gotoxy(60, 9);
-    out << "Кузов автомобиля: " << setw(10)<<right<<" "<<car.type << endl;
+    out << "Кузов автомобиля: " << setw(20)<<right<<" "<<car.type << endl;
     gotoxy(60, 10);
-    out << "Класс автомобиля " << setw(10) << right << " " <<car.body<< endl;
+    out << "Класс автомобиля: " << setw(20) << right << " " <<car.body<< endl;
     gotoxy(60, 11);
-    out << "Vодель автомобиля " << setw(10) << right << " " << car.name<< endl;
+    out << "Модель автомобиля: " << setw(19) << right << " " << car.name<< endl;
     gotoxy(60, 12);
-    out << "Объем двигателя " << setw(10) << right << " " << car.engine_capacity << endl;
+    out << "Объем двигателя: " << setw(21) << right << " " << car.engine_capacity << endl;
     gotoxy(60, 13);
-    out << "Тип топлива " << setw(10) << right << " " << car.fuel_type<< endl;
+    out << "Тип топлива: " << setw(25) << right << " " << car.fuel_type<< endl;
     gotoxy(60, 14);
-    out << "Трансмиссия " << setw(10) << right << " " << car.transmission << endl;
+    out << "Трансмиссия: " << setw(25) << right << " " << car.transmission << endl;
     gotoxy(60, 15);
-    out << "Расход топлива(л/км)" << setw(10) << right << " " << car.fuel_use << endl;
+    out << "Расход топлива(л/км): " << setw(16) << right << " " << car.fuel_use << endl;
     gotoxy(60, 16);
-    out << "Cтоимость за день аренды($)" << setw(10) << right << " " << car.cost<<endl;
+    out << "Cтоимость за день аренды($): " << setw(9) << right << " " << car.cost<<endl;
     vsl::gotoxy(0, 20);
     out << "*********************************************************************************************************************************************************************************************";
     return out;
@@ -1178,6 +1179,10 @@ void Admin::coutCars() {
             system("echo Введите любую клавишу чтобы продолжить или DELETE чтобы убрать автомобиль из аренды && pause > nul");
             if (GetAsyncKeyState(VK_DELETE) & 0x8000) {
                 EraseCar(cars, i);
+                gotoxy(60, 24);
+                cout << "Успешно удалено" << endl;
+                gotoxy(60, 25);
+                system("pause");
             }
         }
     }
@@ -1185,6 +1190,11 @@ void Admin::coutCars() {
     fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\cars.txt", ios::trunc);
     for (int i = 0; i < cars.size(); i++) {
         cars[i].saveToFile(fout);
+    }
+    fout.close();
+    fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\reservations.txt", ios::trunc);
+    for (int i = 0; i < all_reservations.size(); i++) {
+        all_reservations[i].saveToFile(fout);
     }
     fout.close();
 }
@@ -1207,7 +1217,7 @@ extern void vsl::All_cars(vector<Car> vehicles) {
     gotoxy(0, y);
     cout << "*********************************************************************************************************************************************************************************************";
 }
-void Car::button(int x,int y) const {
+void Car::button(int x,int y) {
     gotoxy(x, y++);
     cout << "-------------------------------------------------------------";
     gotoxy(x, y);
@@ -1243,7 +1253,7 @@ void Client::choosecar() {
                 int y = 23;
                 result = 1;
                 for (int j{}; j < all_reservations.size(); j++) {
-                    if (cars[i].getname() == all_reservations[j].getcarname()) {
+                    if (cars[i] == all_reservations[j].getcar()) {
                         if (y==23) {
                             cout << "Забронированные даты:" << endl;
                             y--;
@@ -1271,9 +1281,10 @@ void Client::choosecar() {
                     cout << "Введите дату XX.XX.XXXX                                                                 ";
                     gotoxy(73, 25);
                     result = new_date2.input();
-                    if (result == 1) {
+                    if (result == 1 || new_date2 == new_date1) {
                         gotoxy(60, 24);
                         cout << "Вы ввели неверную дату, попробуйте еще раз" << endl;
+                        result = 1;
                         continue;
                     }
                     if (new_date2 < new_date1) {
@@ -1306,6 +1317,7 @@ void Client::choosecar() {
                     }
                     if (permission == true) {
                         all_reservations.push_back(new_reservation);
+                        cars[i].book();
                         gotoxy(60, 28);
                         cout << "Успешное бронирование!";
                         gotoxy(60, 29);
@@ -1402,4 +1414,388 @@ void Reservation::loadFromFile(std::ifstream& in) {
 ostream& operator<<(ostream& out, Date output) {
     out << output.day << "." << output.month << "." << output.year;
     return out;
+}
+
+bool isLeapYear(int year) {
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+int daysInPreviousMonths(int month, int year) {
+    int days = 0;
+    for (int m = 1; m < month; ++m) {
+        switch (m) {
+        case 4: case 6: case 9: case 11:
+            days += 30;
+            break;
+        case 2:
+            days += isLeapYear(year) ? 29 : 28;
+            break;
+        default:
+            days += 31;
+        }
+    }
+    return days;
+}
+int Date::operator-(const Date& other) const {
+    int days1 = day + daysInPreviousMonths(month, year);
+    int days2 = other.day + daysInPreviousMonths(other.month, other.year);
+    return days1 - days2 + 365 * (year - other.year);
+}
+void Client::cout_reservations() {
+    while (1)
+    {
+        clear();
+        All_reservations(this->my_reservations);
+        int i;
+        i = escmenu(UserReservations);
+        Sleep(100);
+        if (i == 123) break;
+        else if (i >= 0) {
+            system("cls");
+            my_reservations[i]->show();
+            gotoxy(60, 3);
+            system("echo Введите любую клавишу чтобы продолжить или DELETE чтобы снять бронь && pause > nul");
+            if (GetAsyncKeyState(VK_DELETE) & 0x8000) {
+                for (int j{}; j < all_reservations.size(); j++) {
+                    if (*my_reservations[i] == all_reservations[j]) {
+                        all_reservations.erase(all_reservations.begin() + j);
+                     }
+                }  
+                my_reservations.erase(my_reservations.begin() + i);
+                gotoxy(60, 24);
+                cout << "Успешно удалено" << endl;
+                gotoxy(60, 25);
+                system("pause");
+            }
+        }
+    }
+    ofstream fout;
+    fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\cars.txt", ios::trunc);
+    for (int i = 0; i < cars.size(); i++) {
+        cars[i].saveToFile(fout);
+    }
+    fout.close();
+    fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\reservations.txt", ios::trunc);
+    for (int i = 0; i < all_reservations.size(); i++) {
+        all_reservations[i].saveToFile(fout);
+    }
+    fout.close();
+}
+extern void vsl::All_reservations(vector<shared_ptr<Reservation>> reservations) {
+    gotoxy(0, 5);
+    cout << "*********************************************************************************************************************************************************************************************";
+    gotoxy(85, 7);
+    cout << "Забронированные автомобили:" << endl;
+    int x = 74, y = 10;
+    for (int i = 0; i < reservations.size(); i++) {
+        reservations[i]->button(x, y);
+        y += 4;
+    }
+    y += 2;
+    gotoxy(85, y++);
+    cout << " Нажмите Esc чтобы выйти в предыдущее меню";
+    y += 6;
+    gotoxy(0, y);
+    cout << "*********************************************************************************************************************************************************************************************";
+};
+extern void vsl::All_reservations(vector<Reservation> reservations) {
+    gotoxy(0, 5);
+    cout << "*********************************************************************************************************************************************************************************************";
+    gotoxy(85, 7);
+    cout << "Забронированные автомобили:" << endl;
+    int x = 74, y = 10;
+    for (int i = 0; i < reservations.size(); i++) {
+        reservations[i].button(x, y);
+        y += 4;
+    }
+    y += 2;
+    gotoxy(85, y++);
+    cout << " Нажмите Esc чтобы выйти в предыдущее меню";
+    y += 6;
+    gotoxy(0, y);
+    cout << "*********************************************************************************************************************************************************************************************";
+};
+void Reservation::button(int x, int y) {
+    gotoxy(x, y++);
+    cout << "-------------------------------------------------------------";
+    gotoxy(x, y);
+    cout << "* " << this->getcarname();
+    gotoxy(x + 60, y);
+    cout << "*";
+    gotoxy(x + 30, y++);
+    cout << this->acquisition_date << " - "<<this->return_date;
+    gotoxy(x, y);
+    cout << "-------------------------------------------------------------";
+};
+extern int vsl::UserReservations(MOUSE_EVENT_RECORD ir) {
+    int state = 0;
+    int kol = 0;
+    if (ir.dwEventFlags == MOUSE_MOVED) {
+        int cordx = 74, cordy = 10;
+        All_reservations(Client::my_reservations);
+        gotoxy(ir.dwMousePosition.X, ir.dwMousePosition.Y);
+        int x = ir.dwMousePosition.X, y = ir.dwMousePosition.Y;
+        for (int i = 0; i < Client::my_reservations.size(); i++) {
+            if ((x >= cordx && x <= cordx + 62) && (y >= cordy && y <= cordy + 3)) {
+                gotoxy(cordx, cordy);
+                HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+                SetConsoleTextAttribute(handle, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY);
+                Client::my_reservations[i]->button(cordx, cordy);
+                cordy += 4;
+                SetConsoleTextAttribute(handle, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE);
+                break;
+            }
+            else {
+                cordy += 4;
+            }
+        }
+        return -1;
+    }
+    if (ir.dwEventFlags == 0 && ir.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
+        gotoxy(ir.dwMousePosition.X, ir.dwMousePosition.Y);
+        int cordx = 74, cordy = 10;
+        int x = ir.dwMousePosition.X, y = ir.dwMousePosition.Y;
+        for (int i = 0; i < Client::my_reservations.size(); i++) {
+            if ((x >= cordx && x <= cordx + 62) && (y >= cordy && y <= cordy + 3)) {
+                clear();
+                return i;
+            }
+            else {
+                cordy += 4;
+            }
+        }
+        return -1;
+    }
+    return -1;
+}
+void Client::getreservations() {
+    my_reservations.clear();
+    for (int i = 0; i < all_reservations.size(); i++) {
+        if (all_reservations[i].getreceiver_login() == login) {
+            my_reservations.push_back(make_shared<Reservation>(all_reservations[i]));
+        }
+    }
+}
+void Reservation::show() {
+    Car car;
+    car = this->getcar();
+    vsl::gotoxy(0, 5);
+    cout << "*********************************************************************************************************************************************************************************************";
+    gotoxy(60, 9);
+    cout << "Кузов автомобиля: " << setw(10) << right << " " << car.gettype()<< endl;
+    gotoxy(60, 10);
+    cout << "Класс автомобиля: " << setw(10) << right << " " << car.getbody() << endl;
+    gotoxy(60, 11);
+    cout << "Модель автомобиля: " << setw(9) << right << " " << car.getname() << endl;
+    gotoxy(60, 12);
+    cout << "Объем двигателя: " << setw(11) << right << " " << car.getcapacity() << endl;
+    gotoxy(60, 13);
+    cout << "Тип топлива: " << setw(15) << right << " " << car.getfuel_type() << endl;
+    gotoxy(60, 14);
+    cout << "Трансмиссия: " << setw(15) << right << " " << car.gettransmission() << endl;
+    gotoxy(60, 15);
+    cout << "Расход топлива(л/км): " << setw(6) << right << " " << car.getfuel_use() << endl;
+    gotoxy(60, 16);
+    cout << "Cтоимость аренды($): " << setw(7) << right << " " << car.getcost()*(this->returnReturnDate()-this->returnAcquisitiondate()) << " $" << endl;
+    gotoxy(60, 17);
+    cout << "Промежуток аренды: " << setw(9) << right << " " << this->returnAcquisitiondate() << " - " << this->returnReturnDate();
+    vsl::gotoxy(0, 20);
+    cout << "*********************************************************************************************************************************************************************************************";
+}
+void Admin::cout_reservations() {
+    while (1)
+    {
+        clear();
+        All_reservations(this->all_reservations);
+        int i;
+        i = escmenu(AdminReservations);
+        Sleep(100);
+        if (i == 123) break;
+        else if (i >= 0) {
+            system("cls");
+            all_reservations[i].show();
+            gotoxy(60, 3);
+            system("echo Введите любую клавишу чтобы продолжить или DELETE чтобы снять бронь && pause > nul");
+            if (GetAsyncKeyState(VK_DELETE) & 0x8000) {
+                all_reservations.erase(all_reservations.begin() + i);                                
+                gotoxy(60, 24);
+                cout << "Успешно удалено" << endl;
+                gotoxy(60, 25);
+                system("pause");
+            }
+        }
+    }
+    ofstream fout;
+    fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\cars.txt", ios::trunc);
+    for (int i = 0; i < cars.size(); i++) {
+        cars[i].saveToFile(fout);
+    }
+    fout.close();
+    fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\reservations.txt", ios::trunc);
+    for (int i = 0; i < all_reservations.size(); i++) {
+        all_reservations[i].saveToFile(fout);
+    }
+    fout.close();
+}
+extern int vsl::AdminReservations(MOUSE_EVENT_RECORD ir) {
+    int state = 0;
+    int kol = 0;
+    if (ir.dwEventFlags == MOUSE_MOVED) {
+        int cordx = 74, cordy = 10;
+        All_reservations(User::all_reservations);
+        gotoxy(ir.dwMousePosition.X, ir.dwMousePosition.Y);
+        int x = ir.dwMousePosition.X, y = ir.dwMousePosition.Y;
+        for (int i = 0; i < User::all_reservations.size(); i++) {
+            if ((x >= cordx && x <= cordx + 62) && (y >= cordy && y <= cordy + 3)) {
+                gotoxy(cordx, cordy);
+                HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+                SetConsoleTextAttribute(handle, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY);
+                User::all_reservations[i].button(cordx, cordy);
+                cordy += 4;
+                SetConsoleTextAttribute(handle, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE);
+                break;
+            }
+            else {
+                cordy += 4;
+            }
+        }
+        return -1;
+    }
+    if (ir.dwEventFlags == 0 && ir.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
+        gotoxy(ir.dwMousePosition.X, ir.dwMousePosition.Y);
+        int cordx = 74, cordy = 10;
+        int x = ir.dwMousePosition.X, y = ir.dwMousePosition.Y;
+        for (int i = 0; i < User::all_reservations.size(); i++) {
+            if ((x >= cordx && x <= cordx + 62) && (y >= cordy && y <= cordy + 3)) {
+                clear();
+                return i;
+            }
+            else {
+                cordy += 4;
+            }
+        }
+        return -1;
+    }
+    return -1;
+}
+void Client::change_reservation() {
+    while (1)
+    {
+        clear();
+        All_reservations(this->my_reservations);
+        int i;
+        i = escmenu(UserReservations);
+        Sleep(100);
+        if (i == 123) break;
+        else if (i >= 0) {
+            system("cls");
+            my_reservations[i]->show();
+            gotoxy(60, 3);
+            system("echo Введите любую клавишу чтобы продолжить или ENTER чтобы изменить время заказа && pause > nul");
+            if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
+                Date new_date1, new_date2;
+                int result;
+                Reservation new_reservation;
+                gotoxy(60, 22);
+                cout << "Введите дату получения транспорта" << endl;
+                gotoxy(130, 22);
+                int y = 23;
+                result = 1;
+                for (int j{}; j < all_reservations.size(); j++) {
+                    if (my_reservations[i]->getcar() == all_reservations[j].getcar()) {
+                        if (y == 23) {
+                            cout << "Забронированные даты:" << endl;
+                            y--;
+                        }
+                        gotoxy(130, y += 2);
+                        cout << all_reservations[j].returnAcquisitiondate() << " - " << all_reservations[j].returnReturnDate() << endl;
+                    }
+                }
+                while (result == 1) {
+                    gotoxy(60, 23);
+                    cout << "Введите дату XX.XX.XXXX                                                                 ";
+                    gotoxy(73, 23);
+                    result = new_date1.input();
+                    if (result == 1) {
+                        gotoxy(60, 22);
+                        cout << "Вы ввели неверную дату, попробуйте еще раз" << endl;
+                        continue;
+                    }
+                }
+                result = 1;
+                gotoxy(60, 24);
+                cout << "Введите данные возврата транспорта" << endl;
+                while (result == 1) {
+                    gotoxy(60, 25);
+                    cout << "Введите дату XX.XX.XXXX                                                                 ";
+                    gotoxy(73, 25);
+                    result = new_date2.input();
+                    if (result == 1 || new_date2 == new_date1) {
+                        gotoxy(60, 24);
+                        cout << "Вы ввели неверную дату, попробуйте еще раз" << endl;
+                        result = 1;
+                        continue;
+                    }
+                    if (new_date2 < new_date1) {
+                        gotoxy(60, 24);
+                        cout << "Вы умеете возвращаться назад во времени? Попробуйте еще раз" << endl;
+                        result = 1;
+                        continue;
+                    }
+                    if (new_date2 - new_date1 > 10) {
+                        gotoxy(60, 24);
+                        cout << "Арендовать машину можно не более чем на 10 дней" << endl;
+                        result = 1;
+                        continue;
+                    }
+                }
+                gotoxy(60, 26);
+                cout << "Услуга будет стоить " << Client::my_reservations[i]->getcost()<< " $";
+                gotoxy(60, 27);
+                system("echo Продолжить? Enter - да, любая клавиша - отказаться && pause > nul");
+                if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
+                    bool permission = true;
+                    for (int j = 0; j < all_reservations.size(); j++) {
+                        if (my_reservations[i]->getcarname() == all_reservations[j].getcarname()) {
+                            if (new_date1 > all_reservations[j].returnReturnDate() || new_date2 < all_reservations[j].returnAcquisitiondate()) {
+                                permission = true;
+                            }
+                            if (*my_reservations[i] == all_reservations[j]) {
+                                result = j;
+                            }
+                            else permission = false;
+                        }
+                    }
+                    if (permission == true) {
+                        my_reservations[i]->setAcquisitionDate(new_date1);
+                        my_reservations[i]->setReturnDate(new_date2);
+                        all_reservations[result].setAcquisitionDate(new_date1);
+                        all_reservations[result].setReturnDate(new_date2);
+                        gotoxy(60, 28);
+                        cout << "Успешное бронирование!";
+                        gotoxy(60, 29);
+                        system("pause");
+
+                    }
+                    else
+                    {
+                        gotoxy(60, 28);
+                        cout << "Такая дата уже занята, попробуйте другое время" << endl;
+                        gotoxy(60, 29);
+                        system("pause");
+                    }
+                }
+            }
+        }
+        ofstream fout;
+        fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\cars.txt", ios::trunc);
+        for (int i = 0; i < cars.size(); i++) {
+            cars[i].saveToFile(fout);
+        }
+        fout.close();
+        fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\reservations.txt", ios::trunc);
+        for (int i = 0; i < all_reservations.size(); i++) {
+            all_reservations[i].saveToFile(fout);
+        }
+        fout.close();
+    }
 }

@@ -20,7 +20,7 @@ using namespace std;
 class Printable {
 public:
     virtual void saveToFile(std::ofstream& out) const = 0;
-    virtual void button(int x, int y) const = 0;
+    virtual void button(int x, int y) = 0;
 };
 class Car : public Printable {
     string body;
@@ -96,13 +96,22 @@ public:
     void setfuel_use(float fuel_use) {
         this->fuel_use = fuel_use;
     }
-    void setbooked(bool option) {
-        this->booked = option;
+    void book() {
+        booked++;
+    }
+    void unbook() {
+        booked--;
     }
     void saveToFile(std::ofstream& out) const override;
     void loadFromFile(std::ifstream& in);
-    void button(int x,int y) const override;
+    void button(int x,int y) override;
     friend ostream& operator<<(ostream& out, Car car);
+    bool operator==(Car other) const {
+        if (this->body == other.body && this->name == other.name && this->type == other.type && this->cost == other.cost && this->engine_capacity == other.engine_capacity && this->fuel_type == other.fuel_type && this->fuel_use == other.fuel_use && this->transmission == other.transmission) {
+            return true;
+        }
+        else return false;
+    }
 };
 
 class Reservation;
@@ -137,7 +146,9 @@ public:
 
 class Client : public User {
 public:
+    static vector<shared_ptr<Reservation>> my_reservations;
     Client() : User() {
+        
     };
     Client(User a) {
         surname = a.getsurname();
@@ -147,9 +158,10 @@ public:
 
     }
     void choosecar();
-    void cout_reservations() {};
+    void cout_reservations();
     void notifications() {};
-    void remove_reservation(){};
+    void change_reservation();
+    void getreservations();
 
 };
 struct Date {
@@ -187,14 +199,10 @@ struct Date {
             return false;
         return day > other.day;
     }
-    int operator-(const Date& other) const {
-        int days1 = day + 30 * (month - 1);
-        int days2 = other.day + 30 * (other.month - 1);
-        return days1 - days2 + 365 * (year - other.year);
-    }
+    int operator-(const Date& other) const;
 };
+
 class Reservation : public Printable{
-protected:
     string receiver_login;
     Car vehicle;
     Date acquisition_date;
@@ -212,19 +220,45 @@ public:
     Date returnReturnDate() {
         return return_date;
     }
+    void setAcquisitionDate(Date date) {
+        this->acquisition_date = date;
+    }
+    void setReturnDate(Date date) {
+        this->return_date = date;
+    }
+    Car getcar() {
+        return vehicle;
+    }
     void loadFromFile(std::ifstream& in);
+    float getcost() {
+        return vehicle.getcost() * (return_date - acquisition_date);
+    }
     void saveToFile(std::ofstream& out) const override;
-    void button(int x, int y) const override {};
+    void button(int x, int y) override;
     void setdata(string login, Car vehicle, Date ac_date, Date return_date) {
         this->receiver_login = login;
         this->vehicle = vehicle;
         this->acquisition_date = ac_date;
         this->return_date = return_date;
     }
+    void show();
+    bool operator==(Reservation other) {
+        if (acquisition_date == other.acquisition_date && return_date == other.return_date && receiver_login == other.receiver_login && vehicle == other.vehicle) {
+            return true;
+        }
+        else return false;
+    }
 };
         
 class Admin : public User {
     static void EraseCar(vector<Car> &x,int i) {
+        int kol = 0, c =all_reservations.size();
+        for (int j = 0; j < c; j++) {
+            if (x[i] == all_reservations[j-kol].getcar()) {
+                all_reservations.erase(all_reservations.begin() + j-kol);
+                kol++;
+            }
+        }
         x.erase(cars.begin() + i);
     }
 public:
@@ -258,7 +292,7 @@ public:
     void addCar();
     void addAdmin() {};
     void coutCars();
-    void cout_reservations(){};
+    void cout_reservations();
     ~Admin() {
         ofstream fout;
         fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\cars.txt", ios::trunc);
@@ -267,12 +301,50 @@ public:
         }
         cars.clear();
         fout.close();
-        fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\reservations.txt");
+        fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\reservations.txt",ios::trunc);
         for (int i = 0; i < all_reservations.size(); i++) {
             all_reservations[i].saveToFile(fout);
         }
         all_reservations.clear();
         fout.close();
+    }
+};
+template<class T>
+class Notification {
+    T message;
+    string login;
+public:
+    template <class T>
+    void sendmessage() {
+        ofstream fout;
+        fout.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\notifications.txt");
+        fout << login << endl << message << endl;
+        fout.close();
+    }
+    
+    template<class T>
+    void setmessage(T message) {
+        this->message = message;
+    }
+    void setlogin(string login) {
+        this->login = login;
+    }
+    template<class T>
+    T getmessage() {
+        return message;
+    }
+    string getlogin() {
+        return login;
+    }
+    template <class T>
+    Notification readmessage() {
+        ifstream fin;
+        fin.open("C:\\Users\\USER\\Desktop\\baby_work\\car_rental_system\\info\\notifications.txt");
+        fin >> login >> message;
+        Notification new_notif;
+        newnotif.setmessage(message);
+        newnotif.setlogin(login);
+        return newnotif;
     }
 };
 namespace vsl {
@@ -293,6 +365,10 @@ namespace vsl {
     extern void All_cars_user(vector<Car> vehicles);
     extern int AdmCars(MOUSE_EVENT_RECORD ir);
     extern int UserCars(MOUSE_EVENT_RECORD ir);
+    extern void All_reservations(vector<shared_ptr<Reservation>> reservations);
+    extern int UserReservations(MOUSE_EVENT_RECORD ir);
+    extern void All_reservations(vector<Reservation> reservations);
+    extern int AdminReservations(MOUSE_EVENT_RECORD ir);
 }
 using namespace vsl;
 extern string logininput(string a);

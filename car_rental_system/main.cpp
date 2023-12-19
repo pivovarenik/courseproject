@@ -4,6 +4,7 @@ int main()
 {
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
+	system("chcp 1251");
 	keybd_event(VK_MENU, 0x38, 0, 0);
 	keybd_event(VK_RETURN, 0x1c, 0, 0);
 	keybd_event(VK_RETURN, 0x1c, KEYEVENTF_KEYUP, 0);
@@ -38,6 +39,7 @@ int main()
 				while (state != 6) {
 					coutUserFunct();
 					gotoxy(80, 2);
+					new_client.getreservations();
 					cout << "Добро пожаловать " << new_client.getname();
 					gotoxy(75, 3);
 					cout << "Это система по аренде автомобилей!" << endl;
@@ -55,7 +57,7 @@ int main()
 					case 4:new_client.notifications();
 						clear();
 						break;
-					case 5:new_client.remove_reservation();
+					case 5:new_client.change_reservation();
 						clear();
 						break;
 					case 6:
